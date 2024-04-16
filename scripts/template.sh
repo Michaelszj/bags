@@ -5,7 +5,7 @@ seqname=$2
 use_human=$3
 use_symm=$4
 add_args=${*: 4:$#-1}
-num_epochs=481
+num_epochs=31
 batch_size=256
 
 model_prefix=eval-$seqname
@@ -17,7 +17,7 @@ fi
 echo $pose_cnn_path
 
 # mode: line load
-savename=${model_prefix}-exp
+savename=${model_prefix}-new2
 bash scripts/template-mgpu.sh $gpus $savename \
     $seqname $addr --num_epochs $num_epochs \
   --pose_cnn_path $pose_cnn_path \

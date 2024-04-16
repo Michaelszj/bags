@@ -661,10 +661,11 @@ class v2s_trainer():
         temp_dir = self.save_dir+"/checkpoints"
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
-        # self.model.warmup_canonical(self.evalloader.dataset.datasets[0][self.center_frame],temp_dir)
-        # self.model.gaussians.save_ply(temp_dir+'/epoch_init.ply')
-        self.model.gaussians.load_ply(temp_dir+'/epoch_init.ply')
-        self.model.gaussians.training_setup(self.model.optim)
+        self.model.warmup_canonical(self.evalloader.dataset.datasets[0][self.center_frame],temp_dir)
+        self.model.gaussians.save_ply(temp_dir+'/epoch_init.ply')
+        # self.model.gaussians.load_ply(temp_dir+'/epoch_init.ply')
+        # self.model.gaussians.training_setup(self.model.optim)
+        # self.model.load_bones(self.save_dir)
         # import pdb;pdb.set_trace()
         self.gts = []
         img_path = f'datasource/{seqname}/imgs/'
@@ -725,9 +726,26 @@ class v2s_trainer():
             self.train_bones(100,t,dup=True)
             t += 1
         self.eval(10000, bone=True)
-        import pdb;pdb.set_trace()
         self.model.save_bones()
-        # self.eval(10000, bone=True)
+        self.eval(10000, bone=True)
+        self.model.use_diffusion = True
+        # self.eval(1000)
+        for epoch in range(0, self.num_epochs):
+            self.model.epoch = epoch
+    
+            self.model.img_size = opts.img_size
+            self.train_one_epoch(epoch, self.center_frame)
+            temp_dir = self.save_dir+"/imgs"
+            if not os.path.isdir(temp_dir):
+                os.makedirs(temp_dir)
+            
+            if epoch % 30 == 0:
+                self.eval(epoch)
+            temp_dir = self.save_dir+"/checkpoints"
+            if not os.path.isdir(temp_dir):
+                os.makedirs(temp_dir)
+            if epoch % 200 == 1:
+                self.model.gaussians.save_ply(temp_dir+'/epoch_'+str(epoch)+'.ply')
     
     def cat_videos(self,gt,rgb,bone,path):
         cat = []
@@ -940,14 +958,14 @@ class v2s_trainer():
         """
         opts = self.opts
         # self.model.train()
-        dataloader = self.dataloader
+        dataloader = self.trainloader
         print(f'start training epoch {epoch}')
         self.model.target = target
         # if not warmup: dataloader.sampler.set_epoch(epoch) # necessary for shuffling
         for i, batch in tqdm(enumerate(dataloader)):
             # if i==200*opts.accu_steps:
             #     break
-            if abs(batch['frameid']-target)/self.model.num_fr > (epoch/self.num_epochs+0.05) :continue
+            # if abs(batch['frameid']-target)/self.model.num_fr > (epoch/self.num_epochs+0.05) :continue
             # if i<21: continue
             opt = self.model.optim
             gaussians = self.model.gaussians
@@ -955,13 +973,13 @@ class v2s_trainer():
             iteration = self.model.total_steps
             # if abs(i-target)/self.model.num_fr > (epoch/opts.num_epochs)+0.02:
             #     continue
-            gaussians.update_learning_rate(iteration)
+            # gaussians.update_learning_rate(iteration)
             
             
 
 
 #            self.optimizer.zero_grad()
-            self.accu_steps=3
+            self.accu_steps=5
                 
             #for j in range(10000):
                     
@@ -979,7 +997,7 @@ class v2s_trainer():
                     # if iteration < self.model.num_epochs*self.model.num_fr*(2/4):
                     #     self.zero_grad(gaussians._xyz)
                     #     self.zero_grad(gaussians._scaling)
-                    # self.zero_grad(gaussians._xyz)
+                    self.zero_grad(gaussians._xyz)
                     # self.zero_grad(gaussians._scaling)
                     # self.zero_grad(gaussians._opacity)
                     # self.zero_grad(gaussians._rotation)
@@ -991,8 +1009,8 @@ class v2s_trainer():
                     #     pass# self.zero_grad(gaussians._features_dc)
                     # import pdb;pdb.set_trace()
                     # if iteration > self.model.num_epochs*self.model.num_fr*(4/4):
-                    # gaussians.optimizer.step()
-                    # gaussians.optimizer.zero_grad()
+                    gaussians.optimizer.step()
+                    gaussians.optimizer.zero_grad()
                     self.optimizer.step()
                     self.optimizer.zero_grad()
             # if j%200==0:
@@ -1072,11 +1090,11 @@ class v2s_trainer():
                 # self.model.gaussians.optimizer.zero_grad()
                 self.model.bone_optimizer.step()
                 self.model.bone_optimizer.zero_grad()
-            temp_dir = self.save_dir+"/frames"
-            if not os.path.isdir(temp_dir):
-                os.makedirs(temp_dir)
-            self.model.save_imgs(temp_dir,target,0,use_deform=True,novel_cam=True,save_img=False,fixed_frame=target,frame_bone=True)
-            self.model.save_imgs(temp_dir,target,0,use_deform=True,novel_cam=True,save_img=False,bone_color=True,fixed_frame=target,frame_bone=True)
+            # temp_dir = self.save_dir+"/frames"
+            # if not os.path.isdir(temp_dir):
+            #     os.makedirs(temp_dir)
+            # self.model.save_imgs(temp_dir,target,0,use_deform=True,novel_cam=True,save_img=False,fixed_frame=target,frame_bone=True)
+            # self.model.save_imgs(temp_dir,target,0,use_deform=True,novel_cam=True,save_img=False,bone_color=True,fixed_frame=target,frame_bone=True)
             break
                     
     def update_cvf_indicator(self, i):

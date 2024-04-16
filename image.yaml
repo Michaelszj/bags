@@ -26,7 +26,7 @@ lambda_zero123: 1
 batch_size: 16
 batch_size_dynamic: 4
 # training iterations for stage 1
-iters: 2000
+iters: 1000
 # training iterations for stage 2
 iters_refine: 50
 # training camera radius

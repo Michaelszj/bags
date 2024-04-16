@@ -76,7 +76,7 @@ flags.DEFINE_bool('use_cc', True, 'whether to use connected component for mesh')
 
 # model: motion
 flags.DEFINE_bool('lbs', True, 'use lbs for backward warping 3d flow')
-flags.DEFINE_integer('num_bones', 25, 'maximum number of bones')
+flags.DEFINE_integer('num_bones', 50, 'maximum number of bones')
 flags.DEFINE_bool('nerf_skin', True, 'use mlp skinning function')
 flags.DEFINE_integer('t_embed_dim', 128, 'dimension of the pose code')
 flags.DEFINE_bool('frame_code', True, 'whether to use frame code')
@@ -239,7 +239,7 @@ class banmo(nn.Module):
         self.camera_radius = op.radius
         self.networks= {}
         
-        self.use_diffusion = False
+        self.use_diffusion = True
         if self.use_diffusion:
             from nnutils.zero123_utils import Zero123
             self.guidance_zero123 = Zero123(self.device)
@@ -374,7 +374,7 @@ class banmo(nn.Module):
             rts_head = self.nerf_body_rts[1]
             bone_rts_rst = rts_head(rest_pose_code)[0]
             bones_rst = bone_transform(bones_rst, bone_rts_rst, is_vec=True)[0] 
-            bone_rts_fw = self.nerf_body_rts(embedid)
+            bone_rts_fw = self.flatten(self.bones_rts_frame[embedid][0])+self.nerf_body_rts(embedid)/100.
             bone_fw_trans = correct_rest_pose(self.num_bones, bone_rts_fw, bone_rts_rst)
             skin = skinning(bones_rst, gaussian_xyz[None,...], skin_aux=self.skin_aux).squeeze()
             
@@ -404,7 +404,7 @@ class banmo(nn.Module):
             rts_head = self.nerf_body_rts[1]
             bone_rts_rst = rts_head(rest_pose_code)[0]
             bones_rst = bone_transform(bones_rst, bone_rts_rst, is_vec=True)[0] 
-            bone_rts_fw = self.nerf_body_rts(embedid)
+            bone_rts_fw = self.flatten(self.bones_rts_frame[embedid][0])+self.nerf_body_rts(embedid)/100.
             bone_fw_trans = correct_rest_pose(self.num_bones, bone_rts_fw, bone_rts_rst)
             skin = skinning(bones_rst, gaussian_xyz[None,...], skin_aux=self.skin_aux).squeeze()
             
@@ -796,7 +796,7 @@ class banmo(nn.Module):
         img_weight = 1
         mask_weight = 0.1
         lpips_weight = 0.1
-        rig_weight = 0.1
+        rig_weight = 0.3
         
         img_loss = F.mse_loss(image[None,...], (gt_image)[None,...])
         aux_out['img_loss'] = img_loss.data
