@@ -17,7 +17,7 @@ fi
 echo $pose_cnn_path
 
 # mode: line load
-savename=${model_prefix}-new2
+savename=${model_prefix}-ablation3
 bash scripts/template-mgpu.sh $gpus $savename \
     $seqname $addr --num_epochs $num_epochs \
   --pose_cnn_path $pose_cnn_path \

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import imageio
 from tqdm import tqdm
-seqname='shiba'
+seqname='giraffe2'
 img_path = f'datasource/{seqname}/imgs/'
 mask_path = f'datasource/{seqname}/masks/'
 output_path = f'datasource/{seqname}/'
@@ -20,7 +20,7 @@ def remove_background(image_path, mask_path, output_path):
     return result
 
 # Example usage
-n=17
+n=50
 frames = {'camel':(0,25),'bailang':(8,31),'zongxiong':(0,77),'snail':(0,94),'penguin_n':(0,37),'littlelion':(5,43)}
 # a,b = frames[seqname]
 imgs = []

@@ -655,7 +655,10 @@ class v2s_trainer():
                          'rabbit':2,'raven_l':21,'shuita':14,'shumao':11,'stoat':15,'tusun':12,'chailang':27,
                          'haibao':37,'haigui':48,'seal':9,'snowleop':39,'zongxiong':22,'coco':66,'giraffe':3,
                          'giraffe2':49,'littlebear':13,'littlelion':14,'littlelion2':17,'leopard2':115,'eagle':54,
-                         'deer':11,'rat':25,'lion2':4}#6
+                         'deer':11,'rat':25,'lion2':4,'cat-pikachiu_0':19,'cat-pikachiu_1':16,'cat-pikachiu_2':36,'cat-pikachiu_3':16,
+                         'human-cap_0':12,'cat-pikachiu_4':17,'cat-pikachiu_5':61,'cat-pikachiu_6':99,'cat-pikachiu_7':29,'cat-pikachiu_8':37,
+                         'cat-pikachiu_9':7,'human-cap_1':17,'human-cap_2':58,'human-cap_3':16,'human-cap_4':8,'human-cap_9':6,
+                         'zju1':98,'zju2':86,'zju3':60}#6
         seqname=opts.seqname
         self.center_frame = center_frames[seqname]
         temp_dir = self.save_dir+"/checkpoints"
@@ -725,32 +728,40 @@ class v2s_trainer():
         while(t<self.model.num_fr):
             self.train_bones(100,t,dup=True)
             t += 1
-        self.eval(10000, bone=True)
+        self.eval(20000, bone=True)
         self.model.save_bones()
-        self.eval(10000, bone=True)
-        self.model.use_diffusion = True
+        # self.eval(10000, bone=True)
+        # self.model.use_diffusion = True
         # self.eval(1000)
-        for epoch in range(0, self.num_epochs):
-            self.model.epoch = epoch
+        # for epoch in range(0, self.num_epochs):
+        #     self.model.epoch = epoch
     
-            self.model.img_size = opts.img_size
-            self.train_one_epoch(epoch, self.center_frame)
-            temp_dir = self.save_dir+"/imgs"
-            if not os.path.isdir(temp_dir):
-                os.makedirs(temp_dir)
+        #     self.model.img_size = opts.img_size
+        #     self.train_one_epoch(epoch, self.center_frame)
+        #     temp_dir = self.save_dir+"/imgs"
+        #     if not os.path.isdir(temp_dir):
+        #         os.makedirs(temp_dir)
             
-            if epoch % 30 == 0:
-                self.eval(epoch)
-            temp_dir = self.save_dir+"/checkpoints"
-            if not os.path.isdir(temp_dir):
-                os.makedirs(temp_dir)
-            if epoch % 200 == 1:
-                self.model.gaussians.save_ply(temp_dir+'/epoch_'+str(epoch)+'.ply')
+        #     if epoch % 30 == 0:
+        #         self.eval(epoch)
+        #     temp_dir = self.save_dir+"/checkpoints"
+        #     if not os.path.isdir(temp_dir):
+        #         os.makedirs(temp_dir)
+        #     if epoch % 200 == 1:
+        #         self.model.gaussians.save_ply(temp_dir+'/epoch_'+str(epoch)+'.ply')
     
     def cat_videos(self,gt,rgb,bone,path):
         cat = []
         for i in range(len(gt)):
-            cat.append(np.concatenate([gt[i],rgb[i][420:-420],bone[i][420:-420]],axis=1))
+            H = gt[i].shape[-3]
+            W = gt[i].shape[-2]
+            print("H=",H,"W=",W)
+            if W>H:
+                cat.append(np.concatenate([gt[i],rgb[i][420:-420],bone[i][420:-420]],axis=1))
+            elif W<H:
+                cat.append(np.concatenate([gt[i],rgb[i][:,420:-420],bone[i][:,420:-420]],axis=1))
+            else:
+                cat.append(np.concatenate([gt[i],rgb[i],bone[i]],axis=1))
         save_vid(path, cat, suffix='.mp4',upsample_frame=0)
         
     def save_cameras(self, rtk_all, epoch, vid=5):
@@ -1088,6 +1099,8 @@ class v2s_trainer():
                 # # self.zero_grad(self.model.gaussians._features_dc)
                 # self.model.gaussians.optimizer.step()
                 # self.model.gaussians.optimizer.zero_grad()
+                with torch.no_grad():
+                    self.model.bones_rts_frame.grad[:,:,3:]*=5
                 self.model.bone_optimizer.step()
                 self.model.bone_optimizer.zero_grad()
             # temp_dir = self.save_dir+"/frames"

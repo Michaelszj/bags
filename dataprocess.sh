@@ -24,6 +24,26 @@ for video in "$datasource"/*.mp4; do
     # Save the frame count to frames.txt
     echo "$frame_count" > "$datasource/$filename/frames.txt"
 done
+# for video in "$datasource"/*.MOV; do
+#     # Get the filename without the extension
+#     filename=$(basename "$video" .MOV)
+    
+#     # Create a new folder with the same name as the video file
+#     mkdir -p "$datasource/$filename"
+#     mkdir -p "$datasource/$filename/imgs"
+#     mkdir -p "$datasource/$filename/masks"
+#     # mp4e the video file into the new folder
+#     mv "$video" "$datasource/$filename/"
+    
+#     # Use ffmpeg to extract frames from the video with a frame rate of 10
+#     ffmpeg -i "$datasource/$filename/$filename.MOV" -vf fps=10 "$datasource/$filename/imgs/%05d.jpg"
+    
+#     # Count the number of frames extracted
+#     frame_count=$(find "$datasource/$filename/imgs" -type f -name "*.jpg" | wc -l)
+    
+#     # Save the frame count to frames.txt
+#     echo "$frame_count" > "$datasource/$filename/frames.txt"
+# done
 # done
 
 

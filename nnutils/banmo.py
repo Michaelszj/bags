@@ -619,12 +619,24 @@ class banmo(nn.Module):
         # input_img = gt_image[None,...]* 2. - 1.
         
         # import pdb;pdb.set_trace()
+        img_size=(1920,1920)
         with torch.no_grad():
             batch_img = torch.tensor(batch['img'],requires_grad=False).cuda().squeeze().float()
             batch_mask = torch.tensor(batch['mask'],requires_grad=False).cuda().squeeze().float()
             batch_img = batch_img*batch_mask+(1-batch_mask)
-            img_input = torch.cat([torch.ones([3,420,1920],dtype=torch.float32,device=self.device),batch_img,torch.ones([3,420,1920],dtype=torch.float32,device=self.device)],dim=1)[None,...]
-            mask_input = torch.cat([torch.zeros([1,420,1920],dtype=torch.float32,device=self.device),batch_mask[None,...],torch.zeros([1,420,1920],dtype=torch.float32,device=self.device)],dim=1)[None,...]
+            if W>H:
+                img_input = torch.cat([torch.ones([3,420,1920],dtype=torch.float32,device=self.device),batch_img,torch.ones([3,420,1920],dtype=torch.float32,device=self.device)],dim=1)[None,...]
+                mask_input = torch.cat([torch.zeros([1,420,1920],dtype=torch.float32,device=self.device),batch_mask[None,...],torch.zeros([1,420,1920],dtype=torch.float32,device=self.device)],dim=1)[None,...]
+            elif W<H:
+                img_input = torch.cat([torch.ones([3,1920,420],dtype=torch.float32,device=self.device),batch_img,torch.ones([3,1920,420],dtype=torch.float32,device=self.device)],dim=2)[None,...]
+                mask_input = torch.cat([torch.zeros([1,1920,420],dtype=torch.float32,device=self.device),batch_mask[None,...],torch.zeros([1,1920,420],dtype=torch.float32,device=self.device)],dim=2)[None,...]
+            else:
+                img_input = batch_img[None,...]
+                mask_input = batch_mask[None,None,...]
+                img_size=(H,W)
+            print("W=%d,H=%d"%(W,H))
+            print("img_input.shape",img_input.shape)
+            print("mask_input.shape",mask_input.shape)
             # batch_sdf = torch.from_numpy(batch['sdf']).squeeze().cuda()
             input_im = F.interpolate(img_input, (self.optim.ref_size, self.optim.ref_size), mode="bilinear", align_corners=False)
             input_mask = F.interpolate(mask_input, (self.optim.ref_size, self.optim.ref_size), mode="bilinear", align_corners=False)
@@ -651,7 +663,7 @@ class banmo(nn.Module):
             self.gaussians.update_learning_rate(self.warmup_step)
             loss = 0.
             
-            rendered = self.main_render(rtk,(1920,1920),embedid,background=torch.tensor([1.,1.,1.],requires_grad=False).cuda().float(),canonical=True)
+            rendered = self.main_render(rtk,img_size,embedid,background=torch.tensor([1.,1.,1.],requires_grad=False).cuda().float(),canonical=True)
             image = rendered['render']
             mask = rendered['mask']
             depth = rendered['depth']
@@ -707,7 +719,7 @@ class banmo(nn.Module):
                     
             zero123_loss = self.optim.lambda_zero123 * self.guidance_zero123.train_step(images, vers, hors, radii, step_ratio) / self.optim.batch_size
             # zero123_loss = self.optim.lambda_zero123 * self.guidance_zero123.train_step(images, poses, step_ratio=step_ratio)
-            loss += zero123_loss
+            loss += zero123_loss*0.00001
             loss.backward()
             self.gaussians.optimizer.step()
             self.gaussians.optimizer.zero_grad()
@@ -773,8 +785,15 @@ class banmo(nn.Module):
             rendered = self.main_render(rtk,(S,S),embedid,background=background,canonical=False,render_xyz=use_flow,get_rigid_loss=True)
             
         aux_out = rendered
-        image = rendered['render'].squeeze()[:,420:-420]
-        mask = rendered['mask'].squeeze()[420:-420]
+        if W>H:
+            image = rendered['render'].squeeze()[:,420:-420]
+            mask = rendered['mask'].squeeze()[420:-420]
+        elif W<H:
+            image = rendered['render'].squeeze()[:,:,420:-420]
+            mask = rendered['mask'].squeeze()[:,420:-420]
+        else:
+            image = rendered['render'].squeeze()
+            mask = rendered['mask'].squeeze()
         depth = rendered['depth'].squeeze()
         gt_image = batch['img'].squeeze().cuda().float()
         gt_mask = batch['mask'].squeeze().cuda().float()
@@ -785,7 +804,10 @@ class banmo(nn.Module):
         
         # import pdb;pdb.set_trace()
         gt_image = gt_image*gt_mask+(1.-gt_mask)*(background[...,None,None])
-        img_input = torch.cat([torch.ones([3,420,1920],dtype=torch.float32,device=self.device),gt_image,torch.ones([3,420,1920],dtype=torch.float32,device=self.device)],dim=1)[None,...]
+        if W>H:
+            img_input = torch.cat([torch.ones([3,420,1920],dtype=torch.float32,device=self.device),gt_image,torch.ones([3,420,1920],dtype=torch.float32,device=self.device)],dim=1)[None,...]
+        elif W<H:
+            img_input = torch.cat([torch.ones([3,1920,420],dtype=torch.float32,device=self.device),gt_image,torch.ones([3,1920,420],dtype=torch.float32,device=self.device)],dim=2)[None,...]
         # Ll1 = l1_loss(image, gt_image)
         # lambda_dssim = 0.2
         
@@ -796,7 +818,7 @@ class banmo(nn.Module):
         img_weight = 1
         mask_weight = 0.1
         lpips_weight = 0.1
-        rig_weight = 0.3
+        rig_weight = 0.2
         
         img_loss = F.mse_loss(image[None,...], (gt_image)[None,...])
         aux_out['img_loss'] = img_loss.data
@@ -1266,8 +1288,8 @@ class banmo(nn.Module):
         prefix = prefix+postfix
         #import pdb;pdb.set_trace()
         # target = [random.randint(0,bs-1) for i in range(5)]
-        H=1920
-        W=1920
+        H=1024
+        W=1024
         if random_color:
             self.color_replace = torch.rand_like(self.gaussians._xyz).cuda()
         else:
