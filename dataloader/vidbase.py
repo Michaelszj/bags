@@ -80,9 +80,9 @@ class BaseDataset(Dataset):
             img = np.repeat(np.expand_dims(img, 2), 3, axis=2)
 
         try:
-            mask = cv2.imread(self.masklist[im0idx])[:,:,0]
-        except:
             mask = cv2.imread(self.masklist[im0idx][:-3]+'png')[:,:,0]
+        except:
+            mask = cv2.imread(self.masklist[im0idx])[:,:,0]
         mask[mask>=128]=255
         mask[mask<128] =0
         #print('mask+img:%f'%(time.time()-ss))
@@ -132,13 +132,13 @@ class BaseDataset(Dataset):
         try:
             dp = readPFM(self.dplist[im0idx])[0]
         except:
-            print('error loading densepose surface')
+            # print('error loading densepose surface')
             dp = np.zeros_like(occ)
         try:
             dp_feat = readPFM(self.featlist[im0idx])[0]
             dp_bbox =  np.loadtxt(self.bboxlist[im0idx])
         except:
-            print('error loading densepose feature')
+            # print('error loading densepose feature')
             dp_feat =  np.zeros((16*112,112))
             dp_bbox =  np.zeros((4))
         dp= (dp *50).astype(np.int32)

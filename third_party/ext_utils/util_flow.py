@@ -22,7 +22,7 @@
 # SOFTWARE.
 
 import math
-import png
+# import png
 import struct
 import array
 import numpy as np

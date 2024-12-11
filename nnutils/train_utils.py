@@ -597,14 +597,13 @@ class v2s_trainer():
         self.model.save_imgs(temp_dir,epoch,target_vid,novel_cam=True,save_video=False,frame_bone=bone,fixed_frame=random_frame)
         
         # self.save_cameras(self.model.rtk_all,epoch,target_vid)
-        self.cat_videos(self.gts,rgbs,bones,temp_dir+'/cat_%03d'%(epoch))
+        # self.cat_videos(self.gts,rgbs,bones,temp_dir+'/cat_%03d'%(epoch))
         
         
         
     def setup(self):
-        center_frames = {'camel':21,'snail':35,'penguin_l':49,'lion':30}
         seqname=self.opts.seqname
-        self.center_frame = center_frames[seqname]
+        self.center_frame = 21
         temp_dir = self.save_dir+"/checkpoints"
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
@@ -643,24 +642,10 @@ class v2s_trainer():
         # elif opts.warmup_pose_ep>0 or opts.pose_cnn_path!='':
         #     self.warmup_pose(log, pose_cnn_path=opts.pose_cnn_path)
         
-        #camel:21
-        #snail 35
-        #penguin_l 49
-        #lion:30
-        #snake:43
-        center_frames = {'camel':21,'snail':35,'penguin_l':49,'lion':30,'snake':43,'dog-collie':10,
-                         'shiba':14,'mano':16,'raven':21,'turtle':27,'wolf':12,'fox_new':7,'ostrich':22,
-                         'leopard':9,'penguin_n':7,'bailang':19,'baiyou':7,'bear':4,'bird':4,'corgi':8,
-                         'daixiong':7,'elephant':36,'fox':15,'jiaolang':7,'jingyu':14,'panda':20,'penguin':19,
-                         'rabbit':2,'raven_l':21,'shuita':14,'shumao':11,'stoat':15,'tusun':12,'chailang':27,
-                         'haibao':37,'haigui':48,'seal':9,'snowleop':39,'zongxiong':22,'coco':66,'giraffe':3,
-                         'giraffe2':49,'littlebear':13,'littlelion':14,'littlelion2':17,'leopard2':115,'eagle':54,
-                         'deer':11,'rat':25,'lion2':4,'cat-pikachiu_0':19,'cat-pikachiu_1':16,'cat-pikachiu_2':36,'cat-pikachiu_3':16,
-                         'human-cap_0':12,'cat-pikachiu_4':17,'cat-pikachiu_5':61,'cat-pikachiu_6':99,'cat-pikachiu_7':29,'cat-pikachiu_8':37,
-                         'cat-pikachiu_9':7,'human-cap_1':17,'human-cap_2':58,'human-cap_3':16,'human-cap_4':8,'human-cap_9':6,
-                         'zju1':98,'zju2':86,'zju3':60}#6
+        
+        
         seqname=opts.seqname
-        self.center_frame = center_frames[seqname]
+        self.center_frame = 21
         temp_dir = self.save_dir+"/checkpoints"
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
@@ -724,12 +709,14 @@ class v2s_trainer():
             self.train_bones(100,t,dup=True)
             t -= 1
         t = self.center_frame+1
+        self.model.save_bones()
         self.eval(10000, bone=True)
         while(t<self.model.num_fr):
             self.train_bones(100,t,dup=True)
             t += 1
-        self.eval(20000, bone=True)
         self.model.save_bones()
+        self.eval(20000, bone=True)
+        
         # self.eval(10000, bone=True)
         # self.model.use_diffusion = True
         # self.eval(1000)

@@ -13,7 +13,7 @@ from scipy.spatial.transform import Rotation as R
 import math
 import sys
 sys.path.insert(0, 'third_party')
-from ext_utils.flowlib import warp_flow, cat_imgflo 
+# from ext_utils.flowlib import warp_flow, cat_imgflo 
 
 def evaluate_mlp(model, xyz_embedded, embed_xyz=None, dir_embedded=None,
                 chunk=32*1024, 

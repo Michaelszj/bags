@@ -719,7 +719,7 @@ class banmo(nn.Module):
                     
             zero123_loss = self.optim.lambda_zero123 * self.guidance_zero123.train_step(images, vers, hors, radii, step_ratio) / self.optim.batch_size
             # zero123_loss = self.optim.lambda_zero123 * self.guidance_zero123.train_step(images, poses, step_ratio=step_ratio)
-            loss += zero123_loss*0.00001
+            loss += zero123_loss*0.1
             loss.backward()
             self.gaussians.optimizer.step()
             self.gaussians.optimizer.zero_grad()
@@ -818,7 +818,7 @@ class banmo(nn.Module):
         img_weight = 1
         mask_weight = 0.1
         lpips_weight = 0.1
-        rig_weight = 0.2
+        rig_weight = 0.4
         
         img_loss = F.mse_loss(image[None,...], (gt_image)[None,...])
         aux_out['img_loss'] = img_loss.data
@@ -1373,12 +1373,12 @@ class banmo(nn.Module):
             # if bone_color:
             #     bone_vis = results['bone_vis'].clamp(0,1)
             #     others.append(bone_vis.moveaxis(0,-1).detach().cpu().numpy())
-            if save_img:
-                cv2.imwrite('%s/%s_%03d_%05d.png'%(savedir,prefix,epoch,i), rgb[...,::-1]*255)
+            # if save_img:
+            #     cv2.imwrite('%s/%s_%03d_%05d.png'%(savedir,prefix,epoch,i), rgb[...,::-1]*255)
         if save_video:
             save_vid('%s/%s_%03d'%(savedir,prefix,epoch), rgbs, suffix='.mp4',upsample_frame=0)
             if random_color:
                 save_vid('%s/%s_%03d'%(savedir,prefix[:-6]+'mask',epoch), masks, suffix='.mp4',upsample_frame=0)
-            if bone_color:
-                save_vid('%s/%s_%03d'%(savedir,prefix[:-5]+'bone_vis',epoch), others, suffix='.mp4',upsample_frame=0)
+            # if bone_color:
+            #     save_vid('%s/%s_%03d'%(savedir,prefix[:-5]+'bone_vis',epoch), others, suffix='.mp4',upsample_frame=0)
         return rgbs

@@ -21,7 +21,7 @@
 
 # modified from https://github.com/liruoteng/OpticalFlowToolkit
 
-import png
+# import png
 import numpy as np
 import matplotlib.colors as cl
 import matplotlib.pyplot as plt
