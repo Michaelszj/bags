@@ -682,26 +682,6 @@ class v2s_trainer():
         # import pdb;pdb.set_trace()
         # torch.cuda.empty_cache()
         self.model.use_diffusion = False
-        # for epoch in range(0, self.num_epochs):
-        #     self.model.epoch = epoch
-    
-        #     self.model.img_size = opts.img_size
-        #     self.reset_hparams(epoch)
-        #     self.train_one_epoch(epoch, self.center_frame)
-        #     temp_dir = self.save_dir+"/imgs"
-        #     if not os.path.isdir(temp_dir):
-        #         os.makedirs(temp_dir)
-            
-        #     if epoch % 30 == 0:
-        #         self.eval(epoch)
-        #     temp_dir = self.save_dir+"/checkpoints"
-        #     if not os.path.isdir(temp_dir):
-        #         os.makedirs(temp_dir)
-        #     if epoch % 200 == 1:
-        #         self.model.gaussians.save_ply(temp_dir+'/epoch_'+str(epoch)+'.ply')
-        # import pdb;pdb.set_trace()
-        # self.model.save_bones()
-        #import pdb;pdb.set_trace()
         
         self.reset_hparams(0)
         t = self.center_frame-1
@@ -717,9 +697,8 @@ class v2s_trainer():
         self.model.save_bones()
         self.eval(20000, bone=True)
         
-        # self.eval(10000, bone=True)
+        
         # self.model.use_diffusion = True
-        # self.eval(1000)
         # for epoch in range(0, self.num_epochs):
         #     self.model.epoch = epoch
     
