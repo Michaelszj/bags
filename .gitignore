@@ -16,7 +16,6 @@ __pycache__/
 lasr_vcn/
 *.pyc
 .nfs*
-datasource
 novel_motion
 eval
 zips
