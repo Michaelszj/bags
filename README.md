@@ -18,7 +18,7 @@ We provide a demo on reconstructing an animal from a single monocualr video:
 ```bash
 bash scripts/template.sh 0 camel "no" "no"
 ```
-The results will be shown in ./logdir
+The results will be shown in ./logdir.
 To evaluate on a novel video, please put the video in ./datasource with the same format as in ./datasource/camel, and add the corresponding config file in ./configs accordingly.
 
 ## Acknowledgement
