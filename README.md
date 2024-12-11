@@ -19,6 +19,7 @@ We provide a demo on reconstructing an animal from a single monocualr video:
 bash scripts/template.sh 0 camel "no" "no"
 ```
 The results will be shown in ./logdir
+To evaluate on a novel video, please put the video in ./datasource with the same format as in ./datasource/camel, and add the corresponding config file in ./configs accordingly.
 
 ## Acknowledgement
 The codebase is from [BANMo](https://github.com/facebookresearch/banmo), and the SDS part is adapted from [DreamGaussian4d](https://github.com/jiawei-ren/dreamgaussian4d). We thank the authors for their brilliant works.
